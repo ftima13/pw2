@@ -1,7 +1,7 @@
 self.addEventListener('fetch',
   function(evento) {
-    // http://localhost/pw2/index.jpg > unicorn.jpg
-    // http://localhost/pw2/index.jpeg > utp.png
+    // http://localhost/index.jpg > unicorn.jpg
+    // http://localhost/index.jpeg > utp.png
     console.log(evento.request.url);
     if(/\.jpg$/.test(evento.request.url)) {
       evento.respondWith(
@@ -16,5 +16,6 @@ self.addEventListener('fetch',
     }
   }
 );
+
 
 
