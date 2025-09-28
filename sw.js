@@ -1,49 +1,58 @@
-self.addEventListener('fetch',
-  function(evento) {
-    // http://localhost/index.jpg > unicorn.jpg
-    // http://localhost/index.jpeg > utp.png
-    console.log(evento.request.url);
-    if(/\.jpg$/.test(evento.request.url)) {
-      evento.respondWith(
-        fetch('atardecer.jpg')
-      );
-    }
-   
-    else if(/\.png$/.test(evento.request.url)) {
-      evento.respondWith(
-        fetch('utp.png')
-      );
-    }
-  }
-);
-// Nombre del cachée
-var cacheName = 'helloWorld';
+// Nombre del caché
+const cacheName = 'helloWorld-v1';
 
-// Evento de instalación del SW: cachea archivos
+// Archivos que se deben cachear
+const archivosACachear = [
+  './index.html',
+  './lib1.js',
+  './lib2.js',
+  './hola.jpg',
+  './unicorn.jpg',
+  './utp.png',
+  './iconos/homescreen144.jpg',
+  './iconos/homescreen144.jpg'
+  // puedes agregar más si tienes
+];
+// Instalar y cachear archivos
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(cacheName)
-      .then(cache => cache.addAll([
-        '/pwa2/index.html',
-        '/pwa2/lib1.js',
-        '/pwa2/lib2.js',
-        '/pwa2/hola.jpg',
-        '/pwa2/unicorn.jpg',
-        '/pwa2/utp.png',
-      ]))
+    caches.open(cacheName).then(cache => cache.addAll(archivosACachear))
   );
+  self.skipWaiting(); // fuerza activación inmediata
 });
 
-// Evento fetch: responde desde la caché si existe
-self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    caches.match(event.request).then(function(response) {
-      if (response) {
-        return response; // Devuelve desde caché
-      }
-      return fetch(event.request); // Si no está en caché, va a la red
+// Activar: limpiar cachés antiguos (opcional, buena práctica)
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.map(key => {
+          if (key !== cacheName) {
+            return caches.delete(key);
+          }
+        })
+      );
     })
   );
+  self.clients.claim(); // toma control de todas las páginas
 });
 
+// Interceptar peticiones
+self.addEventListener('fetch', function(event) {
+  const url = event.request.url;
 
+  if (url.endsWith('.jpg')) {
+    event.respondWith(fetch('./unicorn.jpg'));
+    return;
+  }
+
+  if (url.endsWith('.png')) {
+    event.respondWith(fetch('./utp.png'));
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
+  );
+});
