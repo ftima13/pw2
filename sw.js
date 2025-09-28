@@ -8,31 +8,34 @@ const FILES_TO_CACHE = [
   './utp.png'
 ];
 
-// Instalar SW y guardar archivos en caché
-self.addEventListener('install', function(event) {
+self.addEventListener('install', event => {
   console.log('[SW] Instalando...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.open('helloWorld-v1')
       .then(cache => {
         console.log('[SW] Caché abierto');
-        return cache.addAll(FILES_TO_CACHE);
+        return cache.addAll([
+          './index.html',
+          './lib1.js',
+          './lib2.js',
+          './hola.jpg',
+          './unicorn.jpg',
+          './utp.png'
+        ]);
       })
-      .catch(err => {
-        console.error('[SW] Error al agregar archivos al caché:', err);
-      })
+      .catch(err => console.error('[SW] Error al agregar archivos al caché:', err))
   );
   self.skipWaiting();
 });
 
-// Activar SW (limpiar cachés viejos)
-self.addEventListener('activate', function(event) {
+self.addEventListener('activate', event => {
   console.log('[SW] Activado');
   event.waitUntil(
-    caches.keys().then(function(keys) {
+    caches.keys().then(keys => {
       return Promise.all(
-        keys.map(function(key) {
-          if (key !== CACHE_NAME) {
-            console.log('[SW] Borrando caché viejo:', key);
+        keys.map(key => {
+          if (key !== 'helloWorld-v1') {
+            console.log('[SW] Borrando caché vieja:', key);
             return caches.delete(key);
           }
         })
@@ -42,26 +45,8 @@ self.addEventListener('activate', function(event) {
   self.clients.claim();
 });
 
-// Manejo de fetch
-self.addEventListener('fetch', function(event) {
-  const url = event.request.url;
-
-  // Redirección de imágenes
-  if (url.endsWith('.jpg')) {
-    event.respondWith(fetch('./unicorn.jpg'));
-    return;
-  }
-
-  if (url.endsWith('.png')) {
-    event.respondWith(fetch('./utp.png'));
-    return;
-  }
-
-  // Respuesta desde caché o red
+self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        return response || fetch(event.request);
-      })
+    caches.match(event.request).then(response => response || fetch(event.request))
   );
 });
