@@ -1,52 +1,49 @@
-const CACHE_NAME = 'helloWorld-v1';
-const FILES_TO_CACHE = [
-  './index.html',
-  './lib1.js',
-  './lib2.js',
-  './hola.jpg',
-  './unicorn.jpg',
-  './utp.png'
+// Nombre del caché
+const cacheName = 'helloWorld-v1';
+
+// Archivos que se deben cachear
+const archivosACachear = [
+  '/pwa2/',
+  '/pwa2/index.html',
+  '/pwa2/manifest.json',
+  '/pwa2/lib1.js',
+  '/pwa2/lib2.js',
+  '/pwa2/hola.jpg',
+  '/pwa2/unicorn.jpg',
+  '/pwa2/utp.png',
+  '/pwa2/iconos/homescreen144.png',
+  '/pwa2/iconos/homescreen192.png'
+  // puedes agregar más si tienes
 ];
 
+// Evento de instalación del SW: guarda archivos en caché
 self.addEventListener('install', event => {
-  console.log('[SW] Instalando...');
   event.waitUntil(
-    caches.open('helloWorld-v1')
-      .then(cache => {
-        console.log('[SW] Caché abierto');
-        return cache.addAll([
-          './index.html',
-          './lib1.js',
-          './lib2.js',
-          './hola.jpg',
-          './unicorn.jpg',
-          './utp.png'
-        ]);
-      })
-      .catch(err => console.error('[SW] Error al agregar archivos al caché:', err))
+    caches.open(cacheName)
+      .then(cache => cache.addAll(archivosACachear))
   );
-  self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
-  console.log('[SW] Activado');
-  event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
-        keys.map(key => {
-          if (key !== 'helloWorld-v1') {
-            console.log('[SW] Borrando caché vieja:', key);
-            return caches.delete(key);
-          }
-        })
-      );
-    })
-  );
-  self.clients.claim();
-});
+// Evento fetch: responde desde caché o red
+self.addEventListener('fetch', function(event) {
+  const url = event.request.url;
 
-self.addEventListener('fetch', event => {
+  // Redirección personalizada para imágenes
+  if (url.endsWith('.jpg')) {
+    event.respondWith(fetch('./unicorn.jpg'));
+    return;
+  }
+
+  if (url.endsWith('.png')) {
+    event.respondWith(fetch('./utp.png'));
+    return;
+  }
+
+  // Caché por defecto
   event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
+    caches.match(event.request)
+      .then(function(response) {
+        return response || fetch(event.request);
+      })
   );
 });

@@ -20,30 +20,21 @@
         <script async src="lib1.js"></script>
         <script async src="lib2.js"></script>
         <script>
-            if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js')
-    .then(registration => {
-      console.log('Registro del SW satisfactorio con ámbito:', registration.scope);
+            if('serviceWorker' in navigator){
+                navigator.serviceWorker.register('sw.js')
+                .then(
+                    function(registration){
+                        console.log('Registro del SW satisfactorio con ambito: ',
+                        registration.scope);
 
-      registration.addEventListener('updatefound', () => {
-        const newSW = registration.installing;
-        newSW.addEventListener('statechange', () => {
-          console.log('Nuevo SW estado:', newSW.state);
-        });
-      });
-
-      if (registration.waiting) {
-        console.log('SW está esperando para activarse');
-      }
-      if (registration.active) {
-        console.log('SW activo');
-      }
-    })
-    .catch(err => {
-      console.error('El registro del SW falló:', err);
-    });
-}
-
+                    }
+                ).catch(
+                    function(err){
+                        console.log('El registro del SW falló:', err);
+                    }
+                );
+                    
+            }
         </script>
     </body>
 </html>
