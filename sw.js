@@ -16,7 +16,7 @@ self.addEventListener('fetch',
     }
   }
 );
-// Nombre del caché
+// Nombre del cachée
 var cacheName = 'helloWorld';
 
 // Evento de instalación del SW: cachea archivos
